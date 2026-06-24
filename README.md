@@ -26,9 +26,9 @@ Streamline your iconography workflow.
 - **HTML5** - Semantic structure.
 - **CSS3** - Custom properties (variables), Flexbox, Grid, and Backdrop Filters.
 - **JavaScript** - Dynamic DOM manipulation and Canvas API for image generation.
-- https://api.huemint.com/color (API)
-- https://img.icons8.com/${sanitizedStyle}/${size}/${color}/${query}.png (API)
-- https://dummyimage.com/${width}x${height}/${bgColor}/${fgColor}.${extension}&text=${text} (API)
+- https://api.huemint.com (API)
+- https://img.icons8.com (API)
+- https://dummyimage.com (API)
    
 
 ## 🚀 Getting Started
