@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weby Toolbox</title>
+    <style>
+        /* Global Box Model Fix */
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --secondary-color: #2c2c2c;
+            --input-bg: #2d2d2d;
+            --primary-color: #4a9eff;
+            --accent-color: #00c853;
+            --warning-color: #ffab00;
+            --text-color: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border-color: #3d3d3d;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        #plexus-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            background-color: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Settings Toggle Styles */
+        .settings-container {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .settings-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            user-select: none;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3d3d3d;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(16px);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            background-color: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav li {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        nav li:hover {
+            color: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        nav li.active {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 2.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .tool-section h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .grid-form,
+        .palette-input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .palette-input-grid {
+            grid-template-columns: repeat(2, 1fr);
+            margin-bottom: 2.5rem;
+            gap: 1rem 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 0.7rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .color-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-group input[type="color"] {
+            padding: 0;
+            width: 45px;
+            height: 45px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .hex-input {
+            flex-grow: 1;
+            text-transform: uppercase;
+            font-family: monospace;
+        }
+
+        .no-color-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+
+        .no-color-option input[type="checkbox"] {
+            margin: 0;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        button {
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-generate {
+            background-color: var(--primary-color);
+            color: white;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .btn-generate:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-copy {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-download {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        #result-area {
+            margin-top: 3rem;
+            text-align: center;
+            display: none;
+        }
+
+        .palette-group-title {
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-left: 3px solid var(--primary-color);
+            padding-left: 10px;
+        }
+
+        .palette-results-container {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .palette-card {
+            background: var(--secondary-color);
+            padding: 10px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .swatch {
+            width: 100%;
+            height: 60px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .hex-display {
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .grid-form,
+            .palette-input-grid,
+            .palette-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .settings-container {
+                position: static;
+                justify-content: center;
+                margin-top: 0.5rem;
+                padding: 0.5rem;
+            }
+            
+            header {
+                padding: 1rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="plexus-canvas"></canvas>
+
+    <header>
+        <div class="settings-container">
+            <span class="settings-label">Background FX</span>
+            <label class="switch">
+                <input type="checkbox" id="bg-fx-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <h1 id="app-header">Weby Toolbox</h1>
+    </header>
+
+    <nav>
+        <ul id="main-menu">
+            <li id="menu-placeholder" class="active" onclick="showSection('placeholder-section')">Placeholder</li>
+            <li id="menu-colours" onclick="showSection('colours-section')">Colours</li>
+            <li id="menu-icons" onclick="showSection('icons-section')">Icons</li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Section: Placeholder Generator -->
+        <section class="tool-section" id="placeholder-section">
+            <h2 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Placeholder Generator</h2>
+            <div class="grid-form">
+                <div class="input-group">
+                    <label for="width">Width (px)</label>
+                    <input type="number" id="width" value="600">
+                </div>
+                <div class="input-group">
+                    <label for="height">Height (px)</label>
+                    <input type="number" id="height" value="400">
+                </div>
+                <div class="input-group">
+                    <label>Background Colour</label>
+                    <div class="color-row">
+                        <input type="color" id="bgColorPicker" value="#ffffff">
+                        <input type="text" id="bgColorHex" class="hex-input" value="#FFFFFF">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Foreground Colour</label>
+                    <div class="color-row">
+                        <input type="color" id="fgColorPicker" value="#000000">
+                        <input type="text" id="fgColorHex" class="hex-input" value="#000000">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="extension">Format</label>
+                    <select id="extension">
+                        <option value="jpg">JPG</option>
+                        <option value="png" selected>PNG</option>
+                        <option value="gif">GIF</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="textValue">Text</label>
+                    <input type="text" id="textValue" placeholder="Sample Text">
+                </div>
+            </div>
+
+            <button class="btn-generate" onclick="generatePlaceholder()">Generate Image</button>
+
+            <div id="result-area">
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 2rem;">
+                <h3 style="color: var(--text-muted);">Generated Output</h3>
+                <img id="result-image" src="" alt="Generated Placeholder" style="max-width: 100%; border-radius: 8px;">
+                <div class="button-group">
+                    <button id="copyBtn" class="btn-copy" onclick="copyToClipboard()">Copy Image</button>
+                    <button id="downloadBtn" class="btn-download" onclick="downloadImage()">Download</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Icons Tool -->
+        <section class="tool-section" id="icons-section" style="display:none;">
+            <h2 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Icon Generator</h2>
+
+            <div class="grid-form">
+                <div class="input-group" style="grid-column: 1 / -1;">
+                    <label for="iconSearch">Search Icon</label>
+                    <input type="text" id="iconSearch" placeholder="e.g., home, user, settings...">
+                </div>
+
+                <div class="input-group">
+                    <label for="iconSize">Size (px)</label>
+                    <input type="number" id="iconSize" value="50" min="16" max="512">
+                </div>
+
+                <div class="input-group">
+                    <label>Colour</label>
+                    <div class="color-row">
+                        <input type="color" id="iconColorPicker" value="#ffffff">
+                        <input type="text" id="iconColorHex" class="hex-input" value="#FFFFFF">
+                    </div>
+                </div>
+
+                <div class="input-group" style="grid-column: 1 / -1;">
+                    <label for="iconStyle">Style</label>
+                    <select id="iconStyle">
+                        <option value="3D-Fluency">3D Fluency</option>
+                        <option value="Android">Android</option>
+                        <option value="badges">Badges</option>
+                        <option value="dotty">Dotted</option>
+                        <option value="iOS-glyphs">iOS Glyph</option>
+                        <option value="iOS-filled">iOS 17 Filled</option>
+                        <option value="iOS">iOS 17 Outlined</option>
+                        <option value="lollipop">Lillipop</option>
+                        <option value="Liquid-Glass">Liquid Glass</option>
+                        <option value="Pastel-Glyph">Pastel Glyph</option>
+                        <option value="puffy">Puffy Outline</option>
+                        <option value="pulsar-line">Pulsar Line</option>
+                        <option value="Retro">Retro</option>
+                        <option value="stickers">Stickers</option>
+                        <option value="Windows">Windows 10</option>
+                        <option value="fluency">Windows 11 Color</option>
+                        <option value="fluency-systems-Filled">Windows 11 Filled</option>
+                        <option value="fluency-systems-regular">Windows 11 Outline</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-generate" onclick="generateIcon()">Generate Icon</button>
+
+            <div id="icon-result-area" style="margin-top: 3rem; text-align: center; display: none;">
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 2rem;">
+                <h3 style="color: var(--text-muted);">Generated Icon</h3>
+                <img id="icon-result-image" src="" alt="Generated Icon" style="max-width: 100%; border-radius: 8px; margin-bottom: 1rem;">
+                <div class="button-group">
+                    <button id="iconCopyBtn" class="btn-copy" onclick="copyIconToClipboard()">Copy Icon</button>
+                    <button id="iconDownloadBtn" class="btn-download" onclick="downloadIcon()">Download</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Colours Tool -->
+        <section class="tool-section" id="colours-section" style="display:none;">
+            <h2 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Colour Palette Generator</h2>
+            <div class="palette-input-grid">
+                <div class="input-group">
+                    <label>Color 1</label>
+                    <label class="no-color-option"><input type="checkbox" class="col-lock" checked> No Colour</label>
+                    <div class="color-row">
+                        <input type="color" class="col-picker" value="#4a9eff">
+                        <input type="text" class="hex-input col-hex" value="#4A9EFF">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Color 2</label>
+                    <label class="no-color-option"><input type="checkbox" class="col-lock" checked> No Colour</label>
+                    <div class="color-row">
+                        <input type="color" class="col-picker" value="#00c853">
+                        <input type="text" class="hex-input col-hex" value="#00C853">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Color 3</label>
+                    <label class="no-color-option"><input type="checkbox" class="col-lock" checked> No Colour</label>
+                    <div class="color-row">
+                        <input type="color" class="col-picker" value="#ffab00">
+                        <input type="text" class="hex-input col-hex" value="#FFAB00">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Color 4</label>
+                    <label class="no-color-option"><input type="checkbox" class="col-lock" checked> No Colour</label>
+                    <div class="color-row">
+                        <input type="color" class="col-picker" value="#ffffff">
+                        <input type="text" class="hex-input col-hex" value="#FFFFFF">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-generate" onclick="generatePalette()">Generate Palettes</button>
+
+            <div id="palette-results-container" class="palette-results-container"></div>
+        </section>
+    </div>
+
+    <script>
+        // --- PLEXUS BACKGROUND EFFECT ---
+        const canvas = document.getElementById('plexus-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 80;
+        const connectionDistance = 150;
+        const speed = 0.4;
+        let isAnimationRunning = true; // Track if animation is active
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+                this.radius = 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(74, 158, 255, 0.4)';
+                ctx.fill();
+            }
+        }
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateCanvas() {
+            if (!isAnimationRunning) {
+                // Clear the canvas when animation is off
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                requestAnimationFrame(animateCanvas);
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < connectionDistance) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(74, 158, 255, ${0.15 * (1 - distance / connectionDistance)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        animateCanvas();
+
+        // --- BACKGROUND FX TOGGLE LOGIC ---
+        const fxToggle = document.getElementById('bg-fx-toggle');
+        
+        // Load preference from localStorage
+        const savedFxState = localStorage.getItem('backgroundFX');
+        if (savedFxState !== null) {
+            const isChecked = savedFxState === 'true';
+            fxToggle.checked = isChecked;
+            isAnimationRunning = isChecked;
+        } else {
+            // Default to true if never set
+            fxToggle.checked = true;
+        }
+
+        fxToggle.addEventListener('change', (e) => {
+            isAnimationRunning = e.target.checked;
+            localStorage.setItem('backgroundFX', e.target.checked);
+        });
+
+        // --- UTILITIES ---
+        let currentImageBlob = null;
+        let currentIconBlob = null;
+
+        const copyText = (text, btn) => {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "Copied!";
+                btn.style.backgroundColor = "#00c853";
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.backgroundColor = "";
+                }, 2000);
+            });
+        };
+
+        const showSection = (sectionId) => {
+            document.getElementById('placeholder-section').style.display = 'none';
+            document.getElementById('colours-section').style.display = 'none';
+            document.getElementById('icons-section').style.display = 'none';
+            document.querySelectorAll('#main-menu li').forEach(li => li.classList.remove('active'));
+
+            if (sectionId === 'placeholder-section') {
+                document.getElementById('placeholder-section').style.display = 'block';
+                document.getElementById('menu-placeholder').classList.add('active');
+            } else if (sectionId === 'colours-section') {
+                document.getElementById('colours-section').style.display = 'block';
+                document.getElementById('menu-colours').classList.add('active');
+            } else if (sectionId === 'icons-section') {
+                document.getElementById('icons-section').style.display = 'block';
+                document.getElementById('menu-icons').classList.add('active');
+            }
+        };
+
+        // --- PLACEHOLDER LOGIC ---
+        const setupColorSync = (pickerId, hexId) => {
+            const picker = document.getElementById(pickerId);
+            const hex = document.getElementById(hexId);
+            picker.addEventListener('input', (e) => hex.value = e.target.value.toUpperCase());
+            hex.addEventListener('input', (e) => {
+                let val = e.target.value;
+                if (!val.startsWith('#')) val = '#' + val;
+                if (/^#[0-9A-F]{6}$/i.test(val)) picker.value = val;
+            });
+        };
+        setupColorSync('bgColorPicker', 'bgColorHex');
+        setupColorSync('fgColorPicker', 'fgColorHex');
+
+        async function generatePlaceholder() {
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            const bgColor = document.getElementById('bgColorHex').value.replace('#', '');
+            const fgColor = document.getElementById('fgColorHex').value.replace('#', '');
+            const extension = document.getElementById('extension').value;
+            const text = encodeURIComponent(document.getElementById('textValue').value);
+            const url = `https://dummyimage.com/${width}x${height}/${bgColor}/${fgColor}.${extension}&text=${text}`;
+
+            try {
+                const response = await fetch(url);
+                currentImageBlob = await response.blob();
+                document.getElementById('result-image').src = URL.createObjectURL(currentImageBlob);
+                document.getElementById('result-area').style.display = 'block';
+            } catch (err) { alert('Error generating image.'); }
+        }
+
+        async function copyToClipboard() {
+            const img = document.getElementById('result-image');
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+                canvas.toBlob(async (blob) => {
+                    const item = new ClipboardItem({ "image/png": blob });
+                    await navigator.clipboard.write([item]);
+                    const btn = document.getElementById('copyBtn');
+                    const old = btn.innerText; btn.innerText = "Copied!";
+                    setTimeout(() => btn.innerText = old, 2000);
+                }, 'image/png');
+            } catch (err) { alert('Use Live Server to copy images.'); }
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.href = document.getElementById('result-image').src;
+            link.download = `placeholder-${Date.now()}.png`;
+            link.click();
+        }
+
+        // --- ICONS LOGIC ---
+        const setupIconColorSync = () => {
+            const picker = document.getElementById('iconColorPicker');
+            const hex = document.getElementById('iconColorHex');
+            picker.addEventListener('input', (e) => hex.value = e.target.value.toUpperCase());
+            hex.addEventListener('input', (e) => {
+                let val = e.target.value;
+                if (!val.startsWith('#')) val = '#' + val;
+                if (/^#[0-9A-F]{6}$/i.test(val)) picker.value = val;
+            });
+        };
+        setupIconColorSync();
+
+        async function generateIcon() {
+            const query = document.getElementById('iconSearch').value.trim().toLowerCase().replace(/\s+/g, '-');
+            const size = document.getElementById('iconSize').value;
+            const color = document.getElementById('iconColorHex').value.replace('#', '');
+            let style = document.getElementById('iconStyle').value;
+
+            if (!query) {
+                alert('Please enter a search term.');
+                return;
+            }
+
+            const sanitizedStyle = style.toLowerCase().replace(/\s+/g, '-');
+            const url = `https://img.icons8.com/${sanitizedStyle}/${size}/${color}/${query}.png`;
+
+            try {
+                const response = await fetch(url);
+                currentIconBlob = await response.blob();
+                const img = document.getElementById('icon-result-image');
+                img.src = URL.createObjectURL(currentIconBlob);
+                document.getElementById('icon-result-area').style.display = 'block';
+            } catch (err) {
+                alert('Error fetching icon. Check your connection or try a different style.');
+            }
+        }
+
+        async function copyIconToClipboard() {
+            if (!currentIconBlob) {
+                alert('Please generate an icon first.');
+                return;
+            }
+            try {
+                const item = new ClipboardItem({ "image/png": currentIconBlob });
+                await navigator.clipboard.write([item]);
+                const btn = document.getElementById('iconCopyBtn');
+                const old = btn.innerText; btn.innerText = "Copied!";
+                setTimeout(() => btn.innerText = old, 2000);
+            } catch (err) {
+                alert('Error copying to clipboard. Try downloading instead.');
+            }
+        }
+
+        function downloadIcon() {
+            if (!currentIconBlob) {
+                alert('Please generate an icon first.');
+                return;
+            }
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(currentIconBlob);
+            link.download = `icon-${Date.now()}.png`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 100);
+        }
+
+        // --- COLOURS LOGIC ---
+        document.querySelectorAll('.col-picker').forEach((picker, idx) => {
+            const hex = document.querySelectorAll('.col-hex')[idx];
+            picker.addEventListener('input', (e) => hex.value = e.target.value.toUpperCase());
+            hex.addEventListener('input', (e) => {
+                let val = e.target.value;
+                if (!val.startsWith('#')) val = '#' + val;
+                if (/^#[0-9A-F]{6}$/i.test(val)) picker.value = val;
+            });
+        });
+
+        async function generatePalette() {
+            const locks = document.querySelectorAll('.col-lock');
+            const hexInputs = document.querySelectorAll('.col-hex');
+            const paletteInput = Array.from(locks).map((lock, i) => lock.checked ? hexInputs[i].value : "-");
+
+            const payload = {
+                "mode": "transformer",
+                "num_colors": 4,
+                "temperature": "1.2",
+                "num_results": 10,
+                "adjacency": ["0", "65", "45", "35", "65", "0", "35", "65", "45", "35", "0", "35", "35", "65", "35", "0"],
+                "palette": paletteInput
+            };
+
+            const container = document.getElementById('palette-results-container');
+            container.innerHTML = '';
+
+            try {
+                const response = await fetch('https://api.huemint.com/color', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('API Error');
+                const data = await response.json();
+
+                if (!data.results || data.results.length === 0) {
+                    throw new Error("No results found in API response.");
+                }
+
+                container.style.display = 'block';
+
+                data.results.forEach((result, index) => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'palette-group';
+
+                    const title = document.createElement('div');
+                    title.className = 'palette-group-title';
+                    title.innerText = `Palette Option ${index + 1}`;
+                    groupDiv.appendChild(title);
+
+                    const gridDiv = document.createElement('div');
+                    gridDiv.className = 'palette-grid';
+
+                    result.palette.forEach(color => {
+                        const card = document.createElement('div');
+                        card.className = 'palette-card';
+                        const isBlank = color === '-';
+                        const displayColor = isBlank ? '#3d3d3d' : color;
+
+                        card.innerHTML = `
+                        <div class="swatch" style="background-color: ${displayColor}"></div>
+                        <span class="hex-display">${color.toUpperCase()}</span>
+                        <button class="btn-small btn-copy" onclick="copyText('${color}', this)">Copy</button>
+                    `;
+                        gridDiv.appendChild(card);
+                    });
+
+                    groupDiv.appendChild(gridDiv);
+                    container.appendChild(groupDiv);
+                });
+
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (err) {
+                console.error(err);
+                alert('Error fetching palettes.');
+            }
+        }
+    </script>
+
+</body>
+
+</html>
