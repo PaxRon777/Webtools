@@ -2,6 +2,8 @@
 
 A sleek, high-performance web development utility suite designed for rapid web prototyping and asset generation. Featuring a modern dark aesthetic with interactive background effects, **Weby Toolbox** provides web developers with essential tools in one unified interface.
 
+![alt text](<screenshot.png>)
+
 ## ✨ Features
 
 ### 🖼️ Placeholder Generator
